@@ -110,8 +110,14 @@
 
       // Ajout des gestionnaires d'événements pour les écrans tactiles
       renderer.domElement.addEventListener('touchstart', startInteraction, false);
-      renderer.domElement.addEventListener('touchend', endInteraction, false);
-      renderer.domElement.addEventListener('touchcancel', endInteraction, false);
+      renderer.domElement.addEventListener('touchend', function(event) {
+        endInteraction();
+        resetTouch();
+      }, false);
+      renderer.domElement.addEventListener('touchcancel', function(event) {
+        endInteraction();
+        resetTouch();
+      }, false);
       renderer.domElement.addEventListener('touchmove', rotateCubeTouch, false);
       renderer.domElement.addEventListener('gesturechange', resizeCubeTouch, false);
 
@@ -191,6 +197,10 @@
       }
     }
     
+    function resetTouch() {
+      lastTouchX = null;
+      lastTouchY = null;
+    }
 
     document.getElementById('startButton').addEventListener('click', function () {
         this.style.display = 'none';
