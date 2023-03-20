@@ -102,6 +102,18 @@
       renderer.setSize(window.innerWidth, window.innerHeight);
       renderer.setClearColor(0xffffff); // Couleur de fond blanc
       document.body.appendChild(renderer.domElement);
+            // Ajout des gestionnaires d'événements pour la souris
+      renderer.domElement.addEventListener('mousedown', startInteraction, false);
+      renderer.domElement.addEventListener('mouseup', endInteraction, false);
+      renderer.domElement.addEventListener('mousemove', rotateCube, false);
+      renderer.domElement.addEventListener('wheel', resizeCube, { passive: false });
+
+      // Ajout des gestionnaires d'événements pour les écrans tactiles
+      renderer.domElement.addEventListener('touchstart', startInteraction, false);
+      renderer.domElement.addEventListener('touchend', endInteraction, false);
+      renderer.domElement.addEventListener('touchcancel', endInteraction, false);
+      renderer.domElement.addEventListener('touchmove', rotateCubeTouch, false);
+      renderer.domElement.addEventListener('gesturechange', resizeCubeTouch, false);
 
       const loader = new THREE.TextureLoader();
 
@@ -120,18 +132,7 @@
 
       camera.position.z = 7; // Ajustement de la position de la caméra pour voir le cube plus gros
 
-      // Ajout des gestionnaires d'événements pour la souris
-      document.addEventListener('mousedown', startInteraction, false);
-      document.addEventListener('mouseup', endInteraction, false);
-      document.addEventListener('mousemove', rotateCube, false);
-      document.addEventListener('wheel', resizeCube, { passive: false });
 
-      // Ajout des gestionnaires d'événements pour les écrans tactiles
-      document.addEventListener('touchstart', startInteraction, false);
-      document.addEventListener('touchend', endInteraction, false);
-      document.addEventListener('touchcancel', endInteraction, false);
-      document.addEventListener('touchmove', rotateCubeTouch, false);
-      document.addEventListener('gesturechange', resizeCubeTouch, false);
     }
 
     // Fonctions pour gérer l'interaction avec le cube
