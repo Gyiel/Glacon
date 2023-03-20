@@ -9,7 +9,7 @@
   </style>
 </head>
 <body>
-
+  <button id="startButton">Cliquez ici pour démarrer</button>
   <script src="three/build/three.min.js"></script>
   <script>
     // Déclaration des variables globales
@@ -190,10 +190,17 @@
       }
     }
     
+
+    document.getElementById('startButton').addEventListener('click', function () {
+        this.style.display = 'none';
+        startExperience();
+        });
+
     function startExperience() {
         init();
         animate();
         startSounds();
+        audioContext.resume(); // Ajoutez cette ligne pour débloquer l'audio
     }
 
     // Fonction d'animation principale
