@@ -110,7 +110,7 @@
       document.addEventListener('touchmove', rotateCubeTouch, false);
       document.addEventListener('gesturechange', resizeCubeTouch, false);
     }
-    
+
       scene = new THREE.Scene();
       camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 
@@ -167,8 +167,8 @@
       event.preventDefault();
       if (isInteracting && event.touches.length === 1) {
         const touch = event.touches[0];
-        const deltaX = lastTouchX ? touch.clientX - lastTouchX : 0;
-        const deltaY = lastTouchY ? touch.clientY - lastTouchY : 0;
+        const deltaX = lastTouchX ? lastTouchX - touch.clientX : 0;
+        const deltaY = lastTouchY ? lastTouchY - touch.clientY : 0;
         const axis = new THREE.Vector3(-deltaY * 0.005, -deltaX * 0.005, 0).normalize();
         const angle = Math.sqrt(deltaX * deltaX + deltaY * deltaY) * 0.005;
         const quaternion = new THREE.Quaternion().setFromAxisAngle(axis, angle);
