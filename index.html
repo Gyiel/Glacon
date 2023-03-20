@@ -96,6 +96,21 @@
 
     // Initialise la scène, la caméra, le rendu et le cube
     function init() {
+
+      // Ajout des gestionnaires d'événements pour la souris
+      document.addEventListener('mousedown', startInteraction, false);
+      document.addEventListener('mouseup', endInteraction, false);
+      document.addEventListener('mousemove', rotateCube, false);
+      document.addEventListener('wheel', resizeCube, { passive: false });
+
+      // Ajout des gestionnaires d'événements pour les écrans tactiles
+      document.addEventListener('touchstart', startInteraction, false);
+      document.addEventListener('touchend', endInteraction, false);
+      document.addEventListener('touchcancel', endInteraction, false);
+      document.addEventListener('touchmove', rotateCubeTouch, false);
+      document.addEventListener('gesturechange', resizeCubeTouch, false);
+    }
+    
       scene = new THREE.Scene();
       camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 
@@ -121,24 +136,11 @@
 
       camera.position.z = 7; // Ajustement de la position de la caméra pour voir le cube plus gros
 
-      // Ajout des gestionnaires d'événements pour la souris
-      document.addEventListener('mousedown', startInteraction, false);
-      document.addEventListener('mouseup', endInteraction, false);
-      document.addEventListener('mousemove', rotateCube, false);
-      document.addEventListener('wheel', resizeCube, { passive: false });
-
-      // Ajout des gestionnaires d'événements pour les écrans tactiles
-      document.addEventListener('touchstart', startInteraction, false);
-      document.addEventListener('touchend', endInteraction, false);
-      document.addEventListener('touchcancel', endInteraction, false);
-      document.addEventListener('touchmove', rotateCubeTouch, false);
-      document.addEventListener('gesturechange', resizeCubeTouch, false);
-    }
+      
 
     // Fonctions pour gérer l'interaction avec le cube
     function startInteraction() {
       isInteracting = true;
-      audioContext.resume();
     }
 
     function endInteraction() {
@@ -204,7 +206,7 @@
         init();
         animate();
         startSounds();
-        // audioContext.resume(); // Ajoutez cette ligne pour débloquer l'audio
+        audioContext.resume(); // Ajoutez cette ligne pour débloquer l'audio
     }
 
     // Fonction d'animation principale
