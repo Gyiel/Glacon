@@ -20,6 +20,7 @@
     let targetQuaternion = new THREE.Quaternion();
     let targetScale = new THREE.Vector3(1, 1, 1);
     let smoothFactor = 0.1;
+    let lastTouchDistance;
 
     const audioContext = new (window.AudioContext || window.webkitAudioContext)();
     
@@ -108,7 +109,6 @@
       document.addEventListener('touchend', endInteraction, false);
       document.addEventListener('touchcancel', endInteraction, false);
       document.addEventListener('touchmove', rotateCubeTouch, false);
-      document.addEventListener('gesturechange', resizeCubeTouch, false);
     }
 
       scene = new THREE.Scene();
@@ -149,7 +149,7 @@
       lastTouchY = null; // Réinitialisez lastTouchY
     }
 
-    // Rotation du cube avec la souris
+    // Rotation et redimensionnement du cube avec la souris
     function rotateCube(event) {
       if (isInteracting) {
         const deltaY = event.movementY * 0.005;
@@ -161,40 +161,54 @@
         targetQuaternion.multiplyQuaternions(quaternion, targetQuaternion);
       }
     }
-
-    // Rotation du cube avec les écrans tactiles
-    function rotateCubeTouch(event) {
-      event.preventDefault();
-      if (isInteracting && event.touches.length === 1) {
-        const touch = event.touches[0];
-        const deltaX = lastTouchX ? lastTouchX - touch.clientX : 0;
-        const deltaY = lastTouchY ? lastTouchY - touch.clientY : 0;
-        const axis = new THREE.Vector3(-deltaY * 0.005, -deltaX * 0.005, 0).normalize();
-        const angle = Math.sqrt(deltaX * deltaX + deltaY * deltaY) * 0.005;
-        const quaternion = new THREE.Quaternion().setFromAxisAngle(axis, angle);
-
-        targetQuaternion.multiplyQuaternions(quaternion, targetQuaternion);
-
-        lastTouchX = touch.clientX;
-        lastTouchY = touch.clientY;
-      }
-    }
-
-    // Redimensionnement du cube avec la souris
-    function resizeCube(event) {
+   
+        function resizeCube(event) {
       event.preventDefault(); // Empêcher le défilement de la page
       const scaleChange = event.deltaY < 0 ? 1.1 : 0.9;
       targetScale.multiplyScalar(scaleChange);
     }
 
-    // Redimensionnement du cube avec les écrans tactiles
-    function resizeCubeTouch(event) {
+    // Rotation et redimensionnement du cube avec les écrans tactiles
+    function rotateCubeTouch(event) {
       event.preventDefault();
-      if (event.scale !== undefined) {
-        const newScale = event.scale;
-        targetScale.set(newScale, newScale, newScale);
+      if (isInteracting) {
+        if (event.touches.length === 1) {
+          const touch = event.touches[0];
+          const deltaX = lastTouchX ? lastTouchX - touch.clientX : 0;
+          const deltaY = lastTouchY ? lastTouchY - touch.clientY : 0;
+          const axis = new THREE.Vector3(-deltaY * 0.005, -deltaX * 0.005, 0).normalize();
+          const angle = Math.sqrt(deltaX * deltaX + deltaY * deltaY) * 0.005;
+          const quaternion = new THREE.Quaternion().setFromAxisAngle(axis, angle);
+
+          targetQuaternion.multiplyQuaternions(quaternion, targetQuaternion);
+
+          lastTouchX = touch.clientX;
+          lastTouchY = touch.clientY;
+        } else if (event.touches.length === 2) {
+          resizeCubeTouch(event);
+        }
       }
     }
+
+    function resizeCubeTouch(event) {
+      if (event.touches.length === 2) {
+        const touch1 = event.touches[0];
+        const touch2 = event.touches[1];
+        const dx = touch1.clientX - touch2.clientX;
+        const dy = touch1.clientY - touch2.clientY;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        if (lastTouchDistance !== undefined) {
+          const scaleChange = distance / lastTouchDistance;
+          targetScale.multiplyScalar(scaleChange);
+        }
+
+        lastTouchDistance = distance;
+      } else {
+        lastTouchDistance = undefined;
+      }
+    }
+
     
 
     document.getElementById('startButton').addEventListener('click', function () {
