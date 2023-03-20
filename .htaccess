@@ -1,0 +1,5 @@
+Options -Indexes
+<FilesMatch "\.(jpg|jpeg|png|gif|mp3|ogg|wav)$">
+  Header set Content-Disposition "attachment; filename=$1"
+  Header set X-Content-Type-Options "nosniff"
+</FilesMatch>
