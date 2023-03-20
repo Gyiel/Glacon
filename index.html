@@ -9,10 +9,9 @@
   </style>
 </head>
 <body>
-
+  <button id="startButton">Cliquez ici pour démarrer</button>
   <script type="module">
     import * as THREE from 'https://cdn.skypack.dev/three@0.134.0';
-    // Votre code JavaScript ici
   
     // Déclaration des variables globales
     let scene, camera, renderer, cube;
@@ -194,10 +193,17 @@
       }
     }
     
+
+    document.getElementById('startButton').addEventListener('click', function () {
+        this.style.display = 'none';
+        startExperience();
+        });
+
     function startExperience() {
         init();
         animate();
         startSounds();
+        audioContext.resume(); // Ajoutez cette ligne pour débloquer l'audio
     }
 
     // Fonction d'animation principale
