@@ -138,6 +138,7 @@
     // Fonctions pour gérer l'interaction avec le cube
     function startInteraction() {
       isInteracting = true;
+      audioContext.resume();
     }
 
     function endInteraction() {
@@ -203,7 +204,7 @@
         init();
         animate();
         startSounds();
-        audioContext.resume(); // Ajoutez cette ligne pour débloquer l'audio
+        // audioContext.resume(); // Ajoutez cette ligne pour débloquer l'audio
     }
 
     // Fonction d'animation principale
