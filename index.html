@@ -9,9 +9,11 @@
   </style>
 </head>
 <body>
-  <button id="startButton">Cliquez ici pour démarrer</button>
-  <script src="three/build/three.min.js"></script>
-  <script>
+
+  <script type="module">
+    import * as THREE from 'https://cdn.skypack.dev/three@0.134.0';
+    // Votre code JavaScript ici
+  
     // Déclaration des variables globales
     let scene, camera, renderer, cube;
     let isInteracting = false;
@@ -102,24 +104,6 @@
       renderer.setSize(window.innerWidth, window.innerHeight);
       renderer.setClearColor(0xffffff); // Couleur de fond blanc
       document.body.appendChild(renderer.domElement);
-            // Ajout des gestionnaires d'événements pour la souris
-      renderer.domElement.addEventListener('mousedown', startInteraction, false);
-      renderer.domElement.addEventListener('mouseup', endInteraction, false);
-      renderer.domElement.addEventListener('mousemove', rotateCube, false);
-      renderer.domElement.addEventListener('wheel', resizeCube, { passive: false });
-
-      // Ajout des gestionnaires d'événements pour les écrans tactiles
-      renderer.domElement.addEventListener('touchstart', startInteraction, false);
-      renderer.domElement.addEventListener('touchend', function(event) {
-        endInteraction();
-        resetTouch();
-      }, false);
-      renderer.domElement.addEventListener('touchcancel', function(event) {
-        endInteraction();
-        resetTouch();
-      }, false);
-      renderer.domElement.addEventListener('touchmove', rotateCubeTouch, false);
-      renderer.domElement.addEventListener('gesturechange', resizeCubeTouch, false);
 
       const loader = new THREE.TextureLoader();
 
@@ -138,7 +122,18 @@
 
       camera.position.z = 7; // Ajustement de la position de la caméra pour voir le cube plus gros
 
+      // Ajout des gestionnaires d'événements pour la souris
+      document.addEventListener('mousedown', startInteraction, false);
+      document.addEventListener('mouseup', endInteraction, false);
+      document.addEventListener('mousemove', rotateCube, false);
+      document.addEventListener('wheel', resizeCube, { passive: false });
 
+      // Ajout des gestionnaires d'événements pour les écrans tactiles
+      document.addEventListener('touchstart', startInteraction, false);
+      document.addEventListener('touchend', endInteraction, false);
+      document.addEventListener('touchcancel', endInteraction, false);
+      document.addEventListener('touchmove', rotateCubeTouch, false);
+      document.addEventListener('gesturechange', resizeCubeTouch, false);
     }
 
     // Fonctions pour gérer l'interaction avec le cube
@@ -152,7 +147,6 @@
 
     // Rotation du cube avec la souris
     function rotateCube(event) {
-      event.stopPropagation();
       if (isInteracting) {
         const deltaY = event.movementY * 0.005;
         const deltaX = event.movementX * 0.005;
@@ -167,7 +161,6 @@
     // Rotation du cube avec les écrans tactiles
     function rotateCubeTouch(event) {
       event.preventDefault();
-      event.stopPropagation();
       if (isInteracting && event.touches.length === 1) {
         const touch = event.touches[0];
         const deltaX = lastTouchX ? touch.clientX - lastTouchX : 0;
@@ -186,7 +179,6 @@
     // Redimensionnement du cube avec la souris
     function resizeCube(event) {
       event.preventDefault(); // Empêcher le défilement de la page
-      event.stopPropagation();
       const scaleChange = event.deltaY < 0 ? 1.1 : 0.9;
       targetScale.multiplyScalar(scaleChange);
     }
@@ -194,28 +186,16 @@
     // Redimensionnement du cube avec les écrans tactiles
     function resizeCubeTouch(event) {
       event.preventDefault();
-      event.stopPropagation();
       if (event.scale !== undefined) {
         const newScale = event.scale;
         targetScale.set(newScale, newScale, newScale);
       }
     }
     
-    function resetTouch() {
-      lastTouchX = null;
-      lastTouchY = null;
-    }
-
-    document.getElementById('startButton').addEventListener('click', function () {
-        this.style.display = 'none';
-        startExperience();
-        });
-
     function startExperience() {
         init();
         animate();
         startSounds();
-        audioContext.resume(); // Ajoutez cette ligne pour débloquer l'audio
     }
 
     // Fonction d'animation principale
