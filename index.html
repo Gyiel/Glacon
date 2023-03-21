@@ -110,6 +110,13 @@
       document.addEventListener('touchcancel', endInteraction, false);
       document.addEventListener('touchmove', rotateCubeTouch, false);
     }
+    
+      // Empêcher le zoom par défaut sur mobile
+      document.body.addEventListener('touchmove', function (event) {
+        if (event.touches.length > 1) {
+          event.preventDefault();
+        }
+      }, { passive: false });
 
       scene = new THREE.Scene();
       camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
