@@ -3,13 +3,53 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces&display=swap" rel="stylesheet">
   <style>
     body { margin: 0; }
     canvas { display: block; }
+    #startButton {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      padding: 0;
+      border: none;
+      background: none;
+      cursor: pointer;
+    }
+    #startButton img {
+      width: 50px;
+      height: auto;
+    }
+    #startButton:focus {
+      outline: none;
+    }
+    #title {
+      position: absolute;
+      top: 8%;
+      left: 50%;
+      transform: translateX(-50%);
+      font-family: 'Fraunces', serif;
+      font-weight: bold;
+      font-style: italic;
+    }
+    #instruction {
+      position: absolute;
+      top: 11%;
+      left: 50%;
+      transform: translateX(-50%);
+      font-family: 'Fraunces', serif;
+      font-size: smaller;
+      font-style: italic;
+    }
   </style>
 </head>
 <body>
-  <button id="startButton">Cliquez ici pour démarrer</button>
+  <div id="title">Glasson</div>
+  <div id="instruction">(Rotate the cube)</div>
+  <button id="startButton">
+    <img src="HP.png" alt="Cliquez ici pour démarrer" />
+  </button>
   <script type="module">
     import * as THREE from 'https://cdn.skypack.dev/three@0.134.0';
   
@@ -110,13 +150,13 @@
       document.addEventListener('touchcancel', endInteraction, false);
       document.addEventListener('touchmove', rotateCubeTouch, false);
     }
-    
-      // Empêcher le zoom par défaut sur mobile
-      document.body.addEventListener('touchmove', function (event) {
-        if (event.touches.length > 1) {
-          event.preventDefault();
-        }
-      }, { passive: false });
+
+    // Empêcher le zoom par défaut sur mobile
+    document.body.addEventListener('touchmove', function (event) {
+      if (event.touches.length > 1) {
+        event.preventDefault();
+      }
+    }, { passive: false });
 
       scene = new THREE.Scene();
       camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
