@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces&display=swap" rel="stylesheet">
+  <style>
+    body { margin: 0; }
+    canvas { display: block; }
+    #startButton {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      padding: 0;
+      border: none;
+      background: none;
+      cursor: pointer;
+      display: none; 
+    }
+    #startButton img {
+      width: 50px;
+      height: auto;
+    }
+    #startButton:focus {
+      outline: none;
+    }
+    #button1, #button2 {
+      position: absolute;
+      padding: 0;
+      border: none;
+      background: none;
+      cursor: pointer;
+    }
+    #button1 img, #button2 img {
+      width: 40px; /* Modifiez la largeur de l'image */
+      height: auto;
+    }
+    #button1:focus, #button2:focus {
+      outline: none;
+    }
+    #button1 {
+      left: 40%;
+      top: 12%;
+      transform: translate(-50%, -50%);
+    }
+    #button2 {
+      left: 60%;
+      top: 12%;
+      transform: translate(-50%, -50%);
+    }
+    #customImage {
+      position: absolute;
+      top: 5%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 180px; /* Ajustez la taille de l'image */
+      height: auto;
+      display: none; /* Ajoutez cette ligne */
+    }
+  </style>
+</head>
+<body>
+  <img id="customImage" src="Cube-3Pas(titre).png" alt="Glasson">
+  <button id="startButton">
+    <img src="HP.png" alt="Cliquez ici pour démarrer" />
+  </button>
+  <button id="button1" style="display: none;">
+    <img src="Cube-Pas-Button.png" alt="Cliquez ici pour Button 1" />
+  </button>
+  <button id="button2" style="display: none;">
+    <img src="Cube-Note-Button.png" alt="Cliquez ici pour Button 2" />
+  </button>
+  
+  <script type="module">
+    import * as THREE from 'https://cdn.skypack.dev/three@0.134.0';
+  
+    // Déclaration des variables globales
+    let scene, camera, renderer, cube;
+    let isInteracting = false;
+    let lastTouchX, lastTouchY;
+    let targetQuaternion = new THREE.Quaternion();
+    let targetScale = new THREE.Vector3(1, 1, 1);
+    let smoothFactor = 0.1;
+    let lastTouchDistance;
+    let isExperienceStarted = false;
+
+
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    
+    // Chargement des sons
+    const sounds = [
+        new Audio('1.mp3'),
+        new Audio('2.mp3'),
+        new Audio('3.mp3'),
+        new Audio('4.mp3'),
+        new Audio('5.mp3'),
+        new Audio('6.mp3'),
+        ];
+    const soundsB = [
+      new Audio('1b.mp3'),
+      new Audio('2b.mp3'),
+      new Audio('3b.mp3'),
+      new Audio('4b.mp3'),
+      new Audio('5b.mp3'),
+      new Audio('6b.mp3'),
+    ];
+
+        const gainNodes = [];
+
+        let soundsReady = 0;
+
+    // Configuration des sons en boucle et attente de leur chargement
+    for (let i = 0; i < sounds.length; i++) {
+        const sound = sounds[i];
+        sound.loop = true;
+        sound.addEventListener('canplaythrough', onSoundReady, false);
+
+        const gainNode = audioContext.createGain();
+        gainNode.gain.value = 0;
+
+        const source = audioContext.createMediaElementSource(sound);
+        source.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+
+        gainNodes.push(gainNode);
+    }
+
+    for (let i = 0; i < soundsB.length; i++) {
+      const sound = soundsB[i];
+      sound.loop = true;
+      sound.addEventListener('canplaythrough', onSoundReady, false);
+
+      const gainNode = audioContext.createGain();
+      gainNode.gain.value = 0;
+
+      const source = audioContext.createMediaElementSource(sound);
+      source.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+
+      gainNodes.push(gainNode);
+    }
+    // Met à jour les volumes des sons en fonction de la visibilité des faces
+    function updateSoundVolumes() {
+        const cameraDirection = new THREE.Vector3();
+        camera.getWorldDirection(cameraDirection);
+
+        const faceNormals = [
+            new THREE.Vector3(1, 0, 0), //doite
+            new THREE.Vector3(0, 1, 0), //haut
+            new THREE.Vector3(0, 0, 1), //devant
+            new THREE.Vector3(-1, 0, 0), //gauche
+            new THREE.Vector3(0, -1, 0), //bas
+            new THREE.Vector3(0, 0, -1), // arrière
+        ];
+
+        for (let i = 0; i < 6; i++) {
+            const faceNormal = faceNormals[i].clone().applyMatrix4(cube.matrixWorld);
+            const dotProduct = cameraDirection.dot(faceNormal);
+            const frontVolume = Math.max(0, Math.min(1, dotProduct));
+            const sideVolume = Math.max(0, Math.min(1, Math.abs(dotProduct) * 0.001));
+            const targetVolume = Math.max(frontVolume, sideVolume);
+
+            gainNodes[i].gain.setTargetAtTime(targetVolume, audioContext.currentTime, 0.02);
+            gainNodes[i + 6].gain.setTargetAtTime(targetVolume, audioContext.currentTime, 0.02);
+         }
+    }   
+
+    // Joue les sons en boucle    
+    function startSounds() {
+      for (let sound of sounds.concat(soundsB)) {
+        sound.play();
+      }
+    }
+
+    function playSoundsA() {
+      for (let i = 0; i < 6; i++) {
+        sounds[i].play();
+        soundsB[i].pause();
+        soundsB[i].currentTime = 0; // Réinitialiser le temps de lecture pour la prochaine fois
+      }
+    }
+
+    function playSoundsB() {
+      for (let i = 0; i < 6; i++) {
+        sounds[i].pause();
+        sounds[i].currentTime = 0; // Réinitialiser le temps de lecture pour la prochaine fois
+        soundsB[i].play();
+      }
+    }
+
+    button1.addEventListener('click', playSoundsA, false);
+    button2.addEventListener('click', playSoundsB, false);
+
+
+    // Incrémente le compteur, et ne démarre pas l'expérience tout de suite
+    function onSoundReady() {
+      soundsReady++;
+      if (!isExperienceStarted && soundsReady === sounds.length) {
+        init();
+        animate(); // Ajoutez cette ligne pour afficher le cube même si le son n'a pas encore été lancé
+        showCustomImage(); //affiche CustomImage quand tout est chargé
+        showStartButton(); //affiche StartButton quand tout est chargé
+      }
+    }
+
+    // Initialise la scène, la caméra, le rendu et le cube
+    function init() {
+
+      // Ajout des gestionnaires d'événements pour la souris
+      document.addEventListener('mousedown', startInteraction, false);
+      document.addEventListener('mouseup', endInteraction, false);
+      document.addEventListener('mousemove', rotateCube, false);
+      document.addEventListener('wheel', resizeCube, { passive: false });
+
+      // Ajout des gestionnaires d'événements pour les écrans tactiles
+      document.addEventListener('touchstart', startInteraction, false);
+      document.addEventListener('touchend', endInteraction, false);
+      document.addEventListener('touchcancel', endInteraction, false);
+      document.addEventListener('touchmove', rotateCubeTouch, false);
+    }
+
+    // Empêcher le zoom par défaut sur mobile
+    document.body.addEventListener('touchmove', function (event) {
+      if (event.touches.length > 1) {
+        event.preventDefault();
+      }
+    }, { passive: false });
+
+      scene = new THREE.Scene();
+      camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+
+      renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setClearColor(0xffffff); // Couleur de fond blanc
+      document.body.appendChild(renderer.domElement);
+
+      const loader = new THREE.TextureLoader();
+
+      const materials = [
+        new THREE.MeshBasicMaterial({ map: loader.load('4.png') }), // Associé à '1.mp3'
+        new THREE.MeshBasicMaterial({ map: loader.load('1.png') }), // Associé à '2.mp3'
+        new THREE.MeshBasicMaterial({ map: loader.load('5.png') }), // Associé à '3.mp3'
+        new THREE.MeshBasicMaterial({ map: loader.load('2.png') }), // Associé à '4.mp3'
+        new THREE.MeshBasicMaterial({ map: loader.load('6.png') }), // Associé à '5.mp3'
+        new THREE.MeshBasicMaterial({ map: loader.load('3.png') }), // Associé à '6.mp3'
+      ];
+
+      const geometry = new THREE.BoxGeometry(3.5, 3.5, 3.5); // Taille du cube
+      cube = new THREE.Mesh(geometry, materials);
+      scene.add(cube);
+
+      camera.position.z = 7; // Ajustement de la position de la caméra pour voir le cube plus gros
+
+      
+
+    // Fonctions pour gérer l'interaction avec le cube
+    function startInteraction() {
+      isInteracting = true;
+    }
+
+    function endInteraction() {
+      isInteracting = false;
+      lastTouchX = null; // Réinitialisez lastTouchX
+      lastTouchY = null; // Réinitialisez lastTouchY
+    }
+
+    // Rotation et redimensionnement du cube avec la souris
+    function rotateCube(event) {
+      if (isInteracting) {
+        const deltaY = event.movementY * 0.005;
+        const deltaX = event.movementX * 0.005;
+        const axis = new THREE.Vector3(deltaY, deltaX, 0).normalize();
+        const angle = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+        const quaternion = new THREE.Quaternion().setFromAxisAngle(axis, angle);
+
+        targetQuaternion.multiplyQuaternions(quaternion, targetQuaternion);
+      }
+    }
+   
+        function resizeCube(event) {
+      event.preventDefault(); // Empêcher le défilement de la page
+      const scaleChange = event.deltaY < 0 ? 1.1 : 0.9;
+      targetScale.multiplyScalar(scaleChange);
+    }
+
+    // Rotation et redimensionnement du cube avec les écrans tactiles
+    function rotateCubeTouch(event) {
+      event.preventDefault();
+      if (isInteracting) {
+        if (event.touches.length === 1) {
+          const touch = event.touches[0];
+          const deltaX = lastTouchX ? lastTouchX - touch.clientX : 0;
+          const deltaY = lastTouchY ? lastTouchY - touch.clientY : 0;
+          const axis = new THREE.Vector3(-deltaY * 0.005, -deltaX * 0.005, 0).normalize();
+          const angle = Math.sqrt(deltaX * deltaX + deltaY * deltaY) * 0.005;
+          const quaternion = new THREE.Quaternion().setFromAxisAngle(axis, angle);
+
+          targetQuaternion.multiplyQuaternions(quaternion, targetQuaternion);
+
+          lastTouchX = touch.clientX;
+          lastTouchY = touch.clientY;
+        } else if (event.touches.length === 2) {
+          resizeCubeTouch(event);
+        }
+      }
+    }
+
+    function resizeCubeTouch(event) {
+      if (event.touches.length === 2) {
+        const touch1 = event.touches[0];
+        const touch2 = event.touches[1];
+        const dx = touch1.clientX - touch2.clientX;
+        const dy = touch1.clientY - touch2.clientY;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        if (lastTouchDistance !== undefined) {
+          const scaleChange = distance / lastTouchDistance;
+          targetScale.multiplyScalar(scaleChange);
+        }
+
+        lastTouchDistance = distance;
+      } else {
+        lastTouchDistance = undefined;
+      }
+    }
+
+
+    document.addEventListener('touchmove', function (event) {
+      if (event.scale !== 1) {
+        event.preventDefault();
+      }
+    }, { passive: false });
+
+    
+    document.getElementById('startButton').addEventListener('click', function () {
+      this.style.display = 'none';
+      document.getElementById('button1').style.display = 'inline-block';
+      document.getElementById('button2').style.display = 'inline-block';
+      startExperience();
+    });
+
+    function startExperience() {
+      if (!isExperienceStarted) {
+        isExperienceStarted = true;
+        playSoundsA(); // Lance les sons 1.mp3 à 6.mp3
+        audioContext.resume(); // Ajoutez cette ligne pour débloquer l'audio
+      }
+    }
+
+
+    //Affiche CustomImage et StartButton quand tout est chargé
+    function showCustomImage() {
+      const customImage = document.getElementById('customImage');
+      customImage.style.display = 'block';
+    }
+    function showStartButton() {
+      const startButton = document.getElementById('startButton');
+      startButton.style.display = 'block';
+    }
+
+
+
+    // Fonction d'animation principale
+    function animate() {
+      requestAnimationFrame(animate);
+      cube.quaternion.slerp(targetQuaternion, smoothFactor);
+      cube.scale.lerp(targetScale, smoothFactor);
+      updateSoundVolumes(); // Met à jour les volumes des sons en fonction des faces visibles
+      renderer.render(scene, camera);
+    }
+
+
+
+
+  </script>
+</body>
+</html>
