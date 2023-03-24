@@ -16,6 +16,7 @@
       border: none;
       background: none;
       cursor: pointer;
+      display: none; 
     }
     #startButton img {
       width: 50px;
@@ -24,42 +25,53 @@
     #startButton:focus {
       outline: none;
     }
-    #title {
+    #button1, #button2 {
       position: absolute;
-      top: 8%;
-      left: 50%;
-      transform: translateX(-50%);
-      font-family: 'Fraunces', serif;
-      font-weight: bold;
-      font-style: italic;
+      padding: 0;
+      border: none;
+      background: none;
+      cursor: pointer;
     }
-    #instruction {
-      position: absolute;
+    #button1 img, #button2 img {
+      width: 40px; /* Modifiez la largeur de l'image */
+      height: auto;
+    }
+    #button1:focus, #button2:focus {
+      outline: none;
+    }
+    #button1 {
+      left: 40%;
       top: 12%;
-      left: 50%;
-      transform: translateX(-50%);
-      font-family: 'Fraunces', serif;
-      font-size: smaller;
-      font-style: italic;
+      transform: translate(-50%, -50%);
+    }
+    #button2 {
+      left: 60%;
+      top: 12%;
+      transform: translate(-50%, -50%);
     }
     #customImage {
       position: absolute;
       top: 5%;
-      left: 47%;
+      left: 50%;
       transform: translateX(-50%);
-      width: 50px; /* Ajustez la taille de l'image */
+      width: 180px; /* Ajustez la taille de l'image */
       height: auto;
+      display: none; /* Ajoutez cette ligne */
     }
-
   </style>
 </head>
 <body>
-  <div id="title">Glasson</div>
-  <div id="instruction">(Rotate the cube)</div>
-  <img id="customImage" src="Cube-3Pas(alpha).png" alt="3Pas">
+  <img id="customImage" src="Cube-3Pas(titre).png" alt="Glasson">
   <button id="startButton">
     <img src="HP.png" alt="Cliquez ici pour démarrer" />
   </button>
+  <button id="button1" style="display: none;">
+    <img src="Cube-Pas-Button.png" alt="Cliquez ici pour Button 1" />
+  </button>
+  <button id="button2" style="display: none;">
+    <img src="Cube-Note-Button.png" alt="Cliquez ici pour Button 2" />
+  </button>
+  
   <script type="module">
     import * as THREE from 'https://cdn.skypack.dev/three@0.134.0';
   
@@ -71,6 +83,8 @@
     let targetScale = new THREE.Vector3(1, 1, 1);
     let smoothFactor = 0.1;
     let lastTouchDistance;
+    let isExperienceStarted = false;
+
 
     const audioContext = new (window.AudioContext || window.webkitAudioContext)();
     
@@ -83,6 +97,14 @@
         new Audio('5.mp3'),
         new Audio('6.mp3'),
         ];
+    const soundsB = [
+      new Audio('1b.mp3'),
+      new Audio('2b.mp3'),
+      new Audio('3b.mp3'),
+      new Audio('4b.mp3'),
+      new Audio('5b.mp3'),
+      new Audio('6b.mp3'),
+    ];
 
         const gainNodes = [];
 
@@ -104,6 +126,20 @@
         gainNodes.push(gainNode);
     }
 
+    for (let i = 0; i < soundsB.length; i++) {
+      const sound = soundsB[i];
+      sound.loop = true;
+      sound.addEventListener('canplaythrough', onSoundReady, false);
+
+      const gainNode = audioContext.createGain();
+      gainNode.gain.value = 0;
+
+      const source = audioContext.createMediaElementSource(sound);
+      source.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+
+      gainNodes.push(gainNode);
+    }
     // Met à jour les volumes des sons en fonction de la visibilité des faces
     function updateSoundVolumes() {
         const cameraDirection = new THREE.Vector3();
@@ -126,24 +162,47 @@
             const targetVolume = Math.max(frontVolume, sideVolume);
 
             gainNodes[i].gain.setTargetAtTime(targetVolume, audioContext.currentTime, 0.02);
+            gainNodes[i + 6].gain.setTargetAtTime(targetVolume, audioContext.currentTime, 0.02);
          }
     }   
 
     // Joue les sons en boucle    
     function startSounds() {
-        for (let sound of sounds) {
+      for (let sound of sounds.concat(soundsB)) {
         sound.play();
-        }
+      }
     }
 
-    // Incrémente le compteur, et démarre l'expérience lorsque tous les sons seront prêts
+    function playSoundsA() {
+      for (let i = 0; i < 6; i++) {
+        sounds[i].play();
+        soundsB[i].pause();
+        soundsB[i].currentTime = 0; // Réinitialiser le temps de lecture pour la prochaine fois
+      }
+    }
+
+    function playSoundsB() {
+      for (let i = 0; i < 6; i++) {
+        sounds[i].pause();
+        sounds[i].currentTime = 0; // Réinitialiser le temps de lecture pour la prochaine fois
+        soundsB[i].play();
+      }
+    }
+
+    button1.addEventListener('click', playSoundsA, false);
+    button2.addEventListener('click', playSoundsB, false);
+
+
+    // Incrémente le compteur, et ne démarre pas l'expérience tout de suite
     function onSoundReady() {
-        soundsReady++;
-        if (soundsReady === sounds.length) {
-        startExperience();
-        }   
+      soundsReady++;
+      if (!isExperienceStarted && soundsReady === sounds.length) {
+        init();
+        animate(); // Ajoutez cette ligne pour afficher le cube même si le son n'a pas encore été lancé
+        showCustomImage(); //affiche CustomImage quand tout est chargé
+        showStartButton(); //affiche StartButton quand tout est chargé
+      }
     }
-
 
     // Initialise la scène, la caméra, le rendu et le cube
     function init() {
@@ -267,18 +326,33 @@
     }
 
     
-
     document.getElementById('startButton').addEventListener('click', function () {
-        this.style.display = 'none';
-        startExperience();
-        });
+      this.style.display = 'none';
+      document.getElementById('button1').style.display = 'inline-block';
+      document.getElementById('button2').style.display = 'inline-block';
+      startExperience();
+    });
 
     function startExperience() {
-        init();
-        animate();
-        startSounds();
+      if (!isExperienceStarted) {
+        isExperienceStarted = true;
+        playSoundsA(); // Lance les sons 1.mp3 à 6.mp3
         audioContext.resume(); // Ajoutez cette ligne pour débloquer l'audio
+      }
     }
+
+
+    //Affiche CustomImage et StartButton quand tout est chargé
+    function showCustomImage() {
+      const customImage = document.getElementById('customImage');
+      customImage.style.display = 'block';
+    }
+    function showStartButton() {
+      const startButton = document.getElementById('startButton');
+      startButton.style.display = 'block';
+    }
+
+
 
     // Fonction d'animation principale
     function animate() {
