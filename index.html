@@ -40,28 +40,18 @@
       outline: none;
     }
     #button1 {
-      left: 40%;
-      top: 12%;
+      left: 45%;
+      top: 50%;
       transform: translate(-50%, -50%);
     }
     #button2 {
-      left: 60%;
-      top: 12%;
+      left: 55%;
+      top: 50%;
       transform: translate(-50%, -50%);
-    }
-    #customImage {
-      position: absolute;
-      top: 5%;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 180px; /* Ajustez la taille de l'image */
-      height: auto;
-      display: none; /* Ajoutez cette ligne */
     }
   </style>
 </head>
 <body>
-  <img id="customImage" src="Cube-3Pas(titre).png" alt="Glasson">
   <button id="startButton">
     <img src="HP.png" alt="Cliquez ici pour démarrer" />
   </button>
@@ -199,7 +189,6 @@
       if (!isExperienceStarted && soundsReady === sounds.length) {
         init();
         animate(); // Ajoutez cette ligne pour afficher le cube même si le son n'a pas encore été lancé
-        showCustomImage(); //affiche CustomImage quand tout est chargé
         showStartButton(); //affiche StartButton quand tout est chargé
       }
     }
@@ -349,11 +338,7 @@
     }
 
 
-    //Affiche CustomImage et StartButton quand tout est chargé
-    function showCustomImage() {
-      const customImage = document.getElementById('customImage');
-      customImage.style.display = 'block';
-    }
+    //StartButton quand tout est chargé
     function showStartButton() {
       const startButton = document.getElementById('startButton');
       startButton.style.display = 'block';
