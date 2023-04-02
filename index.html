@@ -50,16 +50,6 @@
       transform: translate(-50%, -50%);
     }
     
-    /* Styles pour les appareils avec une largeur d'écran inférieure ou égale à 768px (mobiles et tablettes) */
-    @media (max-width: 768px) {
-      #startButton img,
-      #button1 img,
-      #button2 img {
-        width: 30px; /* Réduisez la taille de l'image pour les appareils mobiles */
-        height: auto;
-      }
-    }
-
     #muteButton {
         position: absolute;
         left: 50%;
@@ -76,6 +66,17 @@
     }
     #muteButton:focus {
         outline: none;
+    }
+
+    /* Styles pour les appareils avec une largeur d'écran inférieure ou égale à 768px (mobiles et tablettes) */
+    @media (max-width: 768px) {
+      #startButton img,
+      #muteButton img,
+      #button1 img,
+      #button2 img {
+        width: 30px; /* Réduisez la taille de l'image pour les appareils mobiles */
+        height: auto;
+      }
     }
 
   </style>
