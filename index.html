@@ -41,19 +41,19 @@
     }
     #button1 {
       left: 10%;
-      top: 50%;
+      top: 45%;
       transform: translate(-50%, -50%);
     }
     #button2 {
-      left: 90%;
-      top: 50%;
+      left: 10%;
+      top: 45%;
       transform: translate(-50%, -50%);
     }
     
     #muteButton {
         position: absolute;
-        left: 50%;
-        top: 50%;
+        left: 10%;
+        top: 55%;
         transform: translate(-50%, -50%);
         padding: 0;
         border: none;
@@ -61,7 +61,7 @@
         cursor: pointer;
     }
     #muteButton img {
-        width: 50px;
+        width: 45px;
         height: auto;
     }
     #muteButton:focus {
@@ -381,10 +381,19 @@
     
     document.getElementById('startButton').addEventListener('click', function () {
       this.style.display = 'none';
-      document.getElementById('button1').style.display = 'inline-block';
       document.getElementById('button2').style.display = 'inline-block';
       document.getElementById('muteButton').style.display = 'inline-block';
       startExperience();
+    });
+
+    document.getElementById('button1').addEventListener('click', function () {
+      this.style.display = 'none';
+      document.getElementById('button2').style.display = 'inline-block';
+    });
+
+    document.getElementById('button2').addEventListener('click', function () {
+      this.style.display = 'none';
+      document.getElementById('button1').style.display = 'inline-block';
     });
 
     function startExperience() {
