@@ -236,14 +236,14 @@
 
       const loader = new THREE.TextureLoader();
 
-      const materials = [
-        new THREE.MeshBasicMaterial({ map: loader.load('4.png') }), // Associé à '1.mp3'
-        new THREE.MeshBasicMaterial({ map: loader.load('1.png') }), // Associé à '2.mp3'
-        new THREE.MeshBasicMaterial({ map: loader.load('5.png') }), // Associé à '3.mp3'
-        new THREE.MeshBasicMaterial({ map: loader.load('2.png') }), // Associé à '4.mp3'
-        new THREE.MeshBasicMaterial({ map: loader.load('6.png') }), // Associé à '5.mp3'
-        new THREE.MeshBasicMaterial({ map: loader.load('3.png') }), // Associé à '6.mp3'
-      ];
+    const materials = [
+      new THREE.MeshBasicMaterial({ map: loader.load('4.png'), transparent: true, opacity: 0.9 }), // Associé à '1.mp3'
+      new THREE.MeshBasicMaterial({ map: loader.load('1.png'), transparent: true, opacity: 0.9 }), // Associé à '2.mp3'
+      new THREE.MeshBasicMaterial({ map: loader.load('5.png'), transparent: true, opacity: 0.9 }), // Associé à '3.mp3'
+      new THREE.MeshBasicMaterial({ map: loader.load('2.png'), transparent: true, opacity: 0.9 }), // Associé à '4.mp3'
+      new THREE.MeshBasicMaterial({ map: loader.load('6.png'), transparent: true, opacity: 0.9 }), // Associé à '5.mp3'
+      new THREE.MeshBasicMaterial({ map: loader.load('3.png'), transparent: true, opacity: 0.9 }), // Associé à '6.mp3'
+    ];
 
       const geometry = new THREE.BoxGeometry(3.5, 3.5, 3.5); // Taille du cube
       cube = new THREE.Mesh(geometry, materials);
