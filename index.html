@@ -59,6 +59,25 @@
         height: auto;
       }
     }
+
+    #muteButton {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        padding: 0;
+        border: none;
+        background: none;
+        cursor: pointer;
+    }
+    #muteButton img {
+        width: 50px;
+        height: auto;
+    }
+    #muteButton:focus {
+        outline: none;
+    }
+
   </style>
 </head>
 <body>
@@ -71,6 +90,10 @@
   <button id="button2" style="display: none;">
     <img src="Cube-Note-Button.png" alt="Cliquez ici pour Button 2" />
   </button>
+  <button id="muteButton" style="display: none;">
+    <img src="HP-eteint.png" alt="Cliquez ici pour couper le son" />
+  </button>
+  
   
   <script type="module">
     import * as THREE from 'https://cdn.skypack.dev/three@0.134.0';
@@ -201,6 +224,29 @@
         animate(); // Ajoutez cette ligne pour afficher le cube même si le son n'a pas encore été lancé
         showStartButton(); //affiche StartButton quand tout est chargé
       }
+    }
+
+    document.getElementById('muteButton').addEventListener('click', toggleMute);
+
+    let isMuted = false;
+
+    function toggleMute() {
+        isMuted = !isMuted;
+
+        // Mettre en sourdine ou réactiver les sons du tableau sounds
+        for (let i = 0; i < sounds.length; i++) {
+            sounds[i].muted = isMuted;
+        }
+
+        // Mettre en sourdine ou réactiver les sons du tableau soundsB
+        for (let i = 0; i < soundsB.length; i++) {
+            soundsB[i].muted = isMuted;
+        }
+
+    // Mettez à jour l'image du bouton pour refléter l'état actuel
+    const muteButtonImg = document.querySelector('#muteButton img');
+    muteButtonImg.src = isMuted ? 'HP-allume.png' : 'HP-eteint.png';
+    muteButtonImg.alt = isMuted ? 'Cliquez ici pour réactiver le son' : 'Cliquez ici pour couper le son';
     }
 
     // Initialise la scène, la caméra, le rendu et le cube
@@ -336,6 +382,7 @@
       this.style.display = 'none';
       document.getElementById('button1').style.display = 'inline-block';
       document.getElementById('button2').style.display = 'inline-block';
+      document.getElementById('muteButton').style.display = 'inline-block';
       startExperience();
     });
 
