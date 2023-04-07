@@ -68,6 +68,38 @@
         outline: none;
     }
 
+    #fireButton {
+        position: absolute;
+        left: 10%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        padding: 0;
+        border: none;
+        background: none;
+        cursor: pointer;
+    }
+    #fireButton img {
+        width: 43px;
+        height: auto;
+    }
+    #fireButton:focus {
+        outline: none;
+    }
+
+    #confirmation {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background-color: white;
+      padding: 20px;
+      border-radius: 5px;
+      text-align: center;
+      font-family: 'Fraunces', serif;
+      font-weight: 300;
+    }
+
     /* Styles pour les appareils avec une largeur d'écran inférieure ou égale à 768px (mobiles et tablettes) */
     @media (max-width: 768px) {
       #startButton img,
@@ -94,6 +126,14 @@
   <button id="muteButton" style="display: none;">
     <img src="HP-eteint.png" alt="Cliquez ici pour couper le son" />
   </button>
+  <button id="fireButton" style="display: none;">
+    <img src="Fire.png" alt="Cliquez ici mettre le feu" />
+  </button>
+  <div id="confirmation">
+    <p>The ice cube will disappear for good. Are you sure?</p>
+    <button id="yesButton">Yes</button>
+    <button id="noButton">No</button>
+  </div>
   
   
   <script type="module">
@@ -108,6 +148,8 @@
     let smoothFactor = 0.1;
     let lastTouchDistance;
     let isExperienceStarted = false;
+    let isExperienceFire = false;
+    let deformationProgress = 0;
 
 
     const audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -128,6 +170,10 @@
       new Audio('4b.mp3'),
       new Audio('5b.mp3'),
       new Audio('6b.mp3'),
+    ];
+
+    const soundsC = [
+      new Audio('Fire.mp3'),
     ];
 
         const gainNodes = [];
@@ -212,9 +258,30 @@
         soundsB[i].play();
       }
     }
+    
+    function playSoundFire() {
+			const fireSound = soundsC[0];
+			fireSound.play();
+		}
+
+    function stopAllSounds() {
+      for (const gainNode of gainNodes) {
+        gainNode.gain.value = 0;
+      }
+      for (const sound of sounds) {
+        sound.pause();
+      }
+      for (const sound of soundsB) {
+        sound.pause();
+      }
+    }
 
     button1.addEventListener('click', playSoundsA, false);
     button2.addEventListener('click', playSoundsB, false);
+    yesButton.addEventListener('click', playSoundFire, false);
+    document.getElementById('yesButton').addEventListener('click', stopAllSounds);
+    
+    
 
 
     // Incrémente le compteur, et ne démarre pas l'expérience tout de suite
@@ -281,15 +348,30 @@
       renderer.setClearColor(0xffffff); // Couleur de fond blanc
       document.body.appendChild(renderer.domElement);
 
-      const loader = new THREE.TextureLoader();
+    // Ajoutez une variable pour l'intensité initiale de la lumière
+    const initialLightIntensity = 1.35;
+
+    // Ajoutez une lumière pour améliorer l'effet de réfraction
+    const light = new THREE.PointLight(0xffffff, initialLightIntensity, 100);
+    light.position.set(0, 40, 20);
+    const light2 = new THREE.PointLight(0xffffff, initialLightIntensity, 100);
+    light2.position.set(-30, -20, 20);
+    const light3 = new THREE.PointLight(0xffffff, initialLightIntensity, 100);
+    light3.position.set(30, -20, 20);
+
+    scene.add(light);
+    scene.add(light2);
+    scene.add(light3);
+
+    const loader = new THREE.TextureLoader();
 
     const materials = [
-      new THREE.MeshBasicMaterial({ map: loader.load('4.png'), transparent: true, opacity: 0.9 }), // Associé à '1.mp3'
-      new THREE.MeshBasicMaterial({ map: loader.load('1.png'), transparent: true, opacity: 0.9 }), // Associé à '2.mp3'
-      new THREE.MeshBasicMaterial({ map: loader.load('5.png'), transparent: true, opacity: 0.9 }), // Associé à '3.mp3'
-      new THREE.MeshBasicMaterial({ map: loader.load('2.png'), transparent: true, opacity: 0.9 }), // Associé à '4.mp3'
-      new THREE.MeshBasicMaterial({ map: loader.load('6.png'), transparent: true, opacity: 0.9 }), // Associé à '5.mp3'
-      new THREE.MeshBasicMaterial({ map: loader.load('3.png'), transparent: true, opacity: 0.9 }), // Associé à '6.mp3'
+        new THREE.MeshPhongMaterial({ map: loader.load('4.png'), transparent: true, refractionRatio: 0.98 }),
+        new THREE.MeshPhongMaterial({ map: loader.load('1.png'), transparent: true, refractionRatio: 0.98 }),
+        new THREE.MeshPhongMaterial({ map: loader.load('5.png'), transparent: true, refractionRatio: 0.98 }),
+        new THREE.MeshPhongMaterial({ map: loader.load('2.png'), transparent: true, refractionRatio: 0.98 }),
+        new THREE.MeshPhongMaterial({ map: loader.load('6.png'), transparent: true, refractionRatio: 0.98 }),
+        new THREE.MeshPhongMaterial({ map: loader.load('3.png'), transparent: true, refractionRatio: 0.98 }),
     ];
 
       const geometry = new THREE.BoxGeometry(3.5, 3.5, 3.5); // Taille du cube
@@ -297,8 +379,6 @@
       scene.add(cube);
 
       camera.position.z = 7; // Ajustement de la position de la caméra pour voir le cube plus gros
-
-      
 
     // Fonctions pour gérer l'interaction avec le cube
     function startInteraction() {
@@ -371,6 +451,42 @@
       }
     }
 
+    // Fonction pour simuler la fonte du glaçon
+    let elapsedTime = 0;
+    const meltingDuration = 8000; // Durée de la fonte en millisecondes (60 000 ms = 1 minute)
+    const opacityDelay = 4000; // Délai avant de modifier l'opacité (5 secondes)
+
+    function meltIceCube(deltaTime) {
+    if (!isExperienceFire) {
+        return;
+    }
+    elapsedTime += deltaTime;
+
+    if (elapsedTime >= meltingDuration) {
+        elapsedTime = meltingDuration;
+    }
+
+    const meltProgress = elapsedTime / meltingDuration;
+
+     // Modification de la transparence et de la réfraction du cube
+     if (elapsedTime >= opacityDelay) {
+        const opacityElapsedTime = elapsedTime - opacityDelay;
+        const opacityMeltProgress = opacityElapsedTime / (meltingDuration - opacityDelay);
+        const opacity = 1 - opacityMeltProgress * 1;
+
+        for (let i = 0; i < cube.material.length; i++) {
+            cube.material[i].opacity = opacity;
+            cube.material[i].refractionRatio = 1 - opacity;
+        }
+    }
+
+    // Intensification progressive de la lumière en fonction de la progression de la fonte
+    const maxLightIntensity = 3.2;
+    light.intensity = initialLightIntensity + (meltProgress * (maxLightIntensity - initialLightIntensity));
+    light2.intensity = initialLightIntensity + (meltProgress * (maxLightIntensity - initialLightIntensity));
+    light3.intensity = initialLightIntensity + (meltProgress * (maxLightIntensity - initialLightIntensity));
+}
+
 
     document.addEventListener('touchmove', function (event) {
       if (event.scale !== 1) {
@@ -383,6 +499,7 @@
       this.style.display = 'none';
       document.getElementById('button2').style.display = 'inline-block';
       document.getElementById('muteButton').style.display = 'inline-block';
+      document.getElementById('fireButton').style.display = 'inline-block';
       startExperience();
     });
 
@@ -403,23 +520,49 @@
         audioContext.resume(); // Ajoutez cette ligne pour débloquer l'audio
       }
     }
-
-
+    
     //StartButton quand tout est chargé
     function showStartButton() {
       const startButton = document.getElementById('startButton');
       startButton.style.display = 'block';
     }
 
+        
+    document.getElementById('fireButton').addEventListener('click', () => {
+      document.getElementById('confirmation').style.display = 'block';
+    });
+
+    document.getElementById('yesButton').addEventListener('click', () => {
+      document.getElementById('confirmation').style.display = 'none';
+      document.getElementById('fireButton').style.display = 'none';
+      document.getElementById('button1').style.display = 'none';
+      document.getElementById('button2').style.display = 'none';
+      document.getElementById('muteButton').style.display = 'none';
+      isExperienceFire = true;
+      this.style.display = 'none';
+     });
+
+    document.getElementById('noButton').addEventListener('click', () => {
+      document.getElementById('confirmation').style.display = 'none';
+    });
 
 
-    // Fonction d'animation principale
-    function animate() {
-      requestAnimationFrame(animate);
-      cube.quaternion.slerp(targetQuaternion, smoothFactor);
-      cube.scale.lerp(targetScale, smoothFactor);
-      updateSoundVolumes(); // Met à jour les volumes des sons en fonction des faces visibles
-      renderer.render(scene, camera);
+
+  // Fonction d'animation principale
+  let lastTimestamp = 0;
+    function animate(timestamp) {
+    // Calcul du deltaTime
+    const deltaTime = lastTimestamp ? timestamp - lastTimestamp : 0;
+    lastTimestamp = timestamp;
+
+    // Appeler meltIceCube avec deltaTime
+    meltIceCube(deltaTime);
+
+    requestAnimationFrame(animate);
+    cube.quaternion.slerp(targetQuaternion, smoothFactor);
+    cube.scale.lerp(targetScale, smoothFactor);
+    updateSoundVolumes(); // Met à jour les volumes des sons en fonction des faces visibles
+    renderer.render(scene, camera);
     }
 
 
