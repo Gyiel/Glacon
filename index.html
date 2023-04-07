@@ -33,27 +33,21 @@
       cursor: pointer;
     }
     #button1 img, #button2 img {
-      width: 40px; /* Modifiez la largeur de l'image */
+      width: 38px; /* Modifiez la largeur de l'image */
       height: auto;
     }
     #button1:focus, #button2:focus {
       outline: none;
     }
-    #button1 {
+    #button1, #button2 {
       left: 10%;
-      top: 45%;
+      top: 35%;
       transform: translate(-50%, -50%);
     }
-    #button2 {
-      left: 10%;
-      top: 45%;
-      transform: translate(-50%, -50%);
-    }
-    
     #muteButton {
         position: absolute;
         left: 10%;
-        top: 55%;
+        top: 65%;
         transform: translate(-50%, -50%);
         padding: 0;
         border: none;
@@ -61,7 +55,7 @@
         cursor: pointer;
     }
     #muteButton img {
-        width: 45px;
+        width: 38px;
         height: auto;
     }
     #muteButton:focus {
@@ -71,7 +65,7 @@
     #fireButton {
         position: absolute;
         left: 10%;
-        top: 50%;
+        top: 45%;
         transform: translate(-50%, -50%);
         padding: 0;
         border: none;
@@ -79,7 +73,7 @@
         cursor: pointer;
     }
     #fireButton img {
-        width: 43px;
+        width: 38px;
         height: auto;
     }
     #fireButton:focus {
@@ -105,8 +99,9 @@
       #startButton img,
       #muteButton img,
       #button1 img,
-      #button2 img {
-        width: 30px; /* Réduisez la taille de l'image pour les appareils mobiles */
+      #button2 img,
+      #fireButton img {
+        width: 28px; /* Réduisez la taille de l'image pour les appareils mobiles */
         height: auto;
       }
     }
